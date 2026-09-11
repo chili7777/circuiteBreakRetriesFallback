@@ -1,0 +1,35 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: orders-service
+payment:
+  base-url: ${PAYMENT_BASE_URL:http://localhost:8081}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,circuitbreakers,circuitbreakerevents,retries,retryevents
+  endpoint:
+    health:
+      probes:
+        enabled: true
+resilience4j:
+  circuitbreaker:
+    instances:
+      payment:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 20
+        minimum-number-of-calls: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+  retry:
+    instances:
+      payment:
+        max-attempts: 3
+        wait-duration: 150ms
+        retry-exceptions:
+          - org.springframework.web.client.ResourceAccessException
+          - org.springframework.web.client.HttpServerErrorException
+          - dev.chili7777.lab.orders.adapter.out.http.PaymentProviderException
