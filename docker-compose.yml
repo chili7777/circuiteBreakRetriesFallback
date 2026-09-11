@@ -1,10 +1,18 @@
 services:
   payment-service:
     build: ./payment-service
-    ports: ["8081:8081"]
+    ports: ["127.0.0.1:8081:8081"]
   orders-service:
     build: ./orders-service
     environment:
       PAYMENT_BASE_URL: http://payment-service:8081
-    ports: ["8080:8080"]
+    ports: ["127.0.0.1:8080:8080"]
     depends_on: [payment-service]
+  k6:
+    image: grafana/k6:1.0.0
+    profiles: ["tools"]
+    volumes:
+      - ./load:/scripts:ro
+    environment:
+      BASE_URL: http://orders-service:8080
+    command: ["run", "/scripts/k6.js"]
